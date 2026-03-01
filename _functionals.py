@@ -8,21 +8,29 @@ class App:
     def __init__(self):
         # чтение .env файла
         load_dotenv()
+        self.__dbCon = None
 
         cryptoKey = os.getenv('cryptoKey', None)
-        if cryptoKey is None:
+        try:
+            if cryptoKey is None:
+                raise ValueError('пустое значение')
+            # нужен для шифрования расшифрования паролей ..
+            self.__encryptor = Fernet(cryptoKey)
+        except ValueError:
             print(f'Поместите значение "{Fernet.generate_key().decode()}" в значение ключа "cryptoKey" .env файла')
             return
 
         # Инициируем базу ..
-        self.__dbCon = sql.connect(os.getenv('dbFile', 'pm.db'))
+        dbFileName = os.getenv('dbFile', 'pm.db')
+        self.__dbCon = sql.connect(dbFileName)
+        # проверяем права доступа к файлу .. Если надо меняем на 600
+        if f'{os.stat(dbFileName).st_mode:o}'[-3:] != '600':
+            os.chmod(dbFileName, 0o600)
+
         curs = self.__dbCon.cursor()
         curs.execute('create table if not exists pm (login text primary key, password text)')
         self.__dbCon.commit();
         curs.close()
-
-        # нужен для шифрования расшифрования паролей ..
-        self.__encryptor = Fernet(cryptoKey)
 
         while True:
             cmd = input('Введите команду (add,list,get,del): ').strip()
@@ -46,7 +54,8 @@ class App:
 
     def __del__(self):
         ''' Завершение приложения'''
-        self.__dbCon.close()
+        if isinstance(self.__dbCon, sql.Connection):
+            self.__dbCon.close()
 
 
     def __getLogin(self):
