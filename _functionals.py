@@ -1,0 +1,152 @@
+import sqlite3 as sql
+import os
+from prettytable import PrettyTable
+from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+
+class App:
+    def __init__(self):
+        # чтение .env файла
+        load_dotenv()
+
+        cryptoKey = os.getenv('cryptoKey', None)
+        if cryptoKey is None:
+            print(f'Поместите значение "{Fernet.generate_key().decode()}" в значение ключа "cryptoKey" .env файла')
+            return
+
+        # Инициируем базу ..
+        self.__dbCon = sql.connect(os.getenv('dbFile', 'pm.db'))
+        curs = self.__dbCon.cursor()
+        curs.execute('create table if not exists pm (login text primary key, password text)')
+        self.__dbCon.commit();
+        curs.close()
+
+        # нужен для шифрования расшифрования паролей ..
+        self.__encryptor = Fernet(cryptoKey)
+
+        while True:
+            cmd = input('Введите команду (add,list,get,del): ').strip()
+            match cmd:
+                case 'add':
+                    if self.__addOper():
+                        print('Данные добавлены')
+                case 'del':
+                    if self.__delOper():
+                        print('Данные удалены')
+                case 'get':
+                    loginData = self.__getOper()
+                    if loginData:
+                        print(f'Логин: "{loginData[0]}"; пароль: "{loginData[1]}"')
+                    else:
+                        print('Данные не нашлись..')
+                case 'list':
+                    self.__listOper()
+                case _:
+                    return
+
+    def __del__(self):
+        ''' Завершение приложения'''
+        self.__dbCon.close()
+
+
+    def __getLogin(self):
+        ''' запрос логина ...'''
+        login = input('Введите логин: ').strip()
+        # ввели пустой логин ...  либо проверка не нужна
+        if not login:
+            return (login, False,)
+
+        curs = self.__dbCon.cursor()
+        curs.execute('select count(*) from pm where login = ?', (login,))
+        res = curs.fetchone()
+        curs.close()
+        return (login, res[0] > 0, )
+
+
+    def __addOper(self):
+        ''' добавление пары логин/пароль '''
+        # запрос логина
+        loginData = self.__getLogin()
+        if not loginData[0]:
+            print(f'Логин "{loginData[0]}" пуст... ')
+            return False
+        if loginData[1]:
+            print(f'Логин "{loginData[0]}" уже занят..')
+            return False
+
+        # С логином всё ОК, запрашиваем пароль ...
+        pas = input('Введите пароль: ').strip()
+        if not pas:
+            if input('Пароль пуст.. Продолжить (+/-)? ').strip() != '+':
+                return False
+
+        # Шифруем ....
+        pas = self.__encryptor.encrypt(pas.encode())
+
+        # сохранение данных
+        curs = self.__dbCon.cursor()
+        curs.execute('insert into pm (login, password) values (?, ?)', (loginData[0], pas))
+        self.__dbCon.commit();
+        curs.close()
+        return True
+
+
+    def __delOper(self):
+        ''' Удаление записи '''
+        loginData = self.__getLogin()
+        if not loginData[0] or not loginData[1]:
+            print('нечего удалять...')
+            return False
+
+        # Удаление записи
+        curs = self.__dbCon.cursor()
+        curs.execute('delete from pm where login = ?', (loginData[0],))
+        self.__dbCon.commit();
+        curs.close()
+        return True
+
+
+    def __getOper(self):
+        ''' запрос данных по логину ..'''
+        loginData = self.__getLogin()
+        # Данные есть в базе
+        if not loginData[1]:
+            return False
+
+        curs = self.__dbCon.cursor()
+        curs.execute('select * from pm where login = ?', (loginData[0],))
+        row = list(curs.fetchone())
+        curs.close()
+        row[1] = self.__encryptor.decrypt(row[1]).decode();
+        return row
+
+
+    def __listOper(self):
+        ''' просмотр списка базы паролей ..'''
+        tbl = PrettyTable()
+        tbl.title = 'Данные сервисов'
+        tbl.field_names = ['Логин', 'Пароль']
+        curs = self.__dbCon.cursor()
+        curs.execute('select * from pm ')
+        while True:
+            row = curs.fetchone()
+            if not row:
+                break
+            row = list(row)
+            row[1] = self.__encryptor.decrypt(row[1]).decode();
+            tbl.add_row(row)
+        curs.close()
+        print(tbl)
+
+
+
+
+
+
+
+
+
+
+
+
+
