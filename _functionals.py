@@ -3,11 +3,13 @@ import os
 from prettytable import PrettyTable
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
+from password_generator import gen as passGenFunc
 
 class App:
     def __init__(self):
         # чтение .env файла
         load_dotenv()
+        # соединение с базой
         self.__dbCon = None
 
         cryptoKey = os.getenv('cryptoKey', None)
@@ -84,10 +86,15 @@ class App:
             return False
 
         # С логином всё ОК, запрашиваем пароль ...
-        pas = input('Введите пароль: ').strip()
-        if not pas:
-            if input('Пароль пуст.. Продолжить (+/-)? ').strip() != '+':
-                return False
+        pas = input('Введите пароль либо 1 - для генерации слабого пароля, 2 - сложного пароля: ').strip()
+        match pas:
+            case '1':
+                pas = passGenFunc()
+            case '2':
+                pas = passGenFunc('complex')
+
+        if not pas and  input('Пароль пуст.. Продолжить (+/-)? ').strip() != '+':
+            return False
 
         # Шифруем ....
         pas = self.__encryptor.encrypt(pas.encode())
