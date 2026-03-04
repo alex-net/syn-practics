@@ -4,6 +4,7 @@ from prettytable import PrettyTable
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 from password_generator import gen as passGenFunc
+from usage_monitor import LoggerDecor
 
 class App:
     def __init__(self):
@@ -73,7 +74,12 @@ class App:
         curs.close()
         return (login, res[0] > 0, )
 
+    @property
+    def getDbCon(self):
+        ''' вернуть подключение к базе ..'''
+        return self.__dbCon
 
+    @LoggerDecor
     def __addOper(self):
         ''' добавление пары логин/пароль '''
         # запрос логина
@@ -107,6 +113,7 @@ class App:
         return True
 
 
+    @LoggerDecor
     def __delOper(self):
         ''' Удаление записи '''
         loginData = self.__getLogin()
@@ -122,6 +129,7 @@ class App:
         return True
 
 
+    @LoggerDecor
     def __getOper(self):
         ''' запрос данных по логину ..'''
         loginData = self.__getLogin()
