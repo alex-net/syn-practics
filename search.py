@@ -19,23 +19,22 @@ def binSearch(sVal, arr = []):
         :param sVal: элемеент для поиска в массиве arr
         :param arr: линейный массив с элементами
     '''
-
-    # начальный индекс
-    ind = 0
+    bounds = [0, None, len(arr)-1]
 
     while True:
-        # Выход по пустому массиву
-        if not arr:
-            return -1
-        mid = len(arr) // 2
+        bounds[1] = (bounds[2] + bounds[0]) // 2
         # нашелся элемент - возвращаем индекс
-        if arr[mid] == sVal:
-            return mid + ind
-        if arr[mid] > sVal:
-            arr = arr[:mid]
+        if arr[bounds[1]] == sVal:
+            return bounds[1]
+
+        # Выход по совпадению (смыканию) границ поиска
+        if bounds[0] == bounds[2]:
+            return -1
+
+        if arr[bounds[1]] > sVal:
+            bounds[2] = bounds[1]
         else:
-            arr = arr[mid + 1:]
-            ind += mid + 1
+            bounds[0] = bounds[1] + 1
 
 
 for n in [1000, 100, 10]:
