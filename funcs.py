@@ -31,3 +31,17 @@ def rangeGen(size = 100):
     # допуск для поиска
     percent = int(size * 0.1)
     return (arr, -percent, size + percent)
+
+
+class Sequence:
+    ''' базовый класс последовательности '''
+    _data = []
+
+    def is_empty(self) -> bool:
+        ''' проверить последовательность на пустоту '''
+        return len(self._data) == 0
+
+    def peek(self) -> int:
+        ''' посмотреть есть ли что доставать '''
+        return self._data[-1] if len(self._data) else None
+

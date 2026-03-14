@@ -1,5 +1,6 @@
 from math import factorial
 from random import shuffle, randint
+from funcs import Sequence
 
 print('Факториал числа N')
 def myFactorial(n:int) -> int:
@@ -45,27 +46,18 @@ for n in r:
 
 # Напишите класс Stack, который реализует основные операции стека: push, pop, is_empty и peek
 print('класс Stack')
-class Stack:
-    __data = []
-
+class Stack(Sequence):
+    ''' класс стека '''
     def push(self, v:int) -> None:
         ''' положить в стек '''
-        self.__data.append(v)
+        self._data.append(v)
 
     def pop(self) -> int:
         ''' вынуть из стека '''
-        return None if not len(self.__data) else self.__data.pop()
-
-    def is_empty(self) -> bool:
-        ''' проверить стек на пустоту '''
-        return len(self.__data) == 0
-
-    def peek(self) -> int:
-        ''' посмотреть есть ли что доставать '''
-        return self.__data[-1] if len(self.__data) else None
+        return None if not len(self._data) else self._data.pop()
 
     def  __repr__(self):
-        return f'Стек <{len(self.__data)}> head: {stack.peek()},{' не ' if not stack.is_empty() else ' '}пустой'
+        return f'Стек <{len(self._data)}> head: {self.peek()},{' не ' if not self.is_empty() else ' '}пустой'
 
 stack = Stack()
 print(stack)
