@@ -45,6 +45,41 @@ def insertSort(arr):
 
     return arr
 
+@funcs.DeTimeDecorator
+def mergeSort(arr):
+    ''' сортировка слянием '''
+    # для массива c длиной менее 2 элементов ничего не делаем ...
+    if len(arr) < 2:
+        return None
+
+    mid = len(arr) // 2
+    left_half = arr[:mid]
+    right_half = arr[mid:]
+    mergeSort(left_half)
+    mergeSort(right_half)
+    i = j = k = 0
+    # Слияние двух половин
+    while i < len(left_half) and j < len(right_half):
+        if left_half[i] < right_half[j]:
+            arr[k] = left_half[i]
+            i += 1
+        else:
+             arr[k] = right_half[j]
+             j += 1
+        k += 1
+
+    # Проверка остатков
+    while i < len(left_half):
+        arr[k] = left_half[i]
+        i += 1
+        k += 1
+    while j < len(right_half):
+        arr[k] = right_half[j]
+        j += 1
+        k += 1
+    return arr
+
+
 sorted = funcs.DeTimeDecorator(sorted)
 
 # for n in [1000, 100, 10]:
@@ -57,6 +92,7 @@ for n in headers[1:]:
         ('пузырёк', bibbleSort),
         ('выбор', selectionSort),
         ('вставки', insertSort),
+        ('слияние', mergeSort),
         ('build-in', sorted)
     ]:
         nArr = fn(arr.copy())
