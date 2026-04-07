@@ -87,17 +87,21 @@ class AVLTree(BinaryTree):
         self.reposition()
 
     def __reorder(self, el1=None, el2=None):
-        ''' перегруппировка дерева  '''
+        ''' перегруппировка дерева
+        el1 - левый элемент перестановки
+        el2 - правый элемент перестановки
+        '''
+        # для неназначенных элементов - думаем что происходит обмен по текущему узлу ..
         el1 = self if el1 is None else el1
         el2 = self if el2 is None else el2
-        subTrees = [el1._left, el2._left, el1._right, el2._right]
-        el1, el2 = el2, el1
+        # компенсатор обмена данными между узлами el2 el1
         el1._data, el2._data = el2._data, el1._data
-        el1._left = subTrees[0]
-        el1._right = subTrees[1]
-        el2._left = subTrees[2]
-        el2._right = subTrees[3]
-
+        # сохраняем последовательность дочрних деревтев в перестановкой местами внутренних узлов
+        subTrees = (el1._left, el2._left, el1._right, el2._right)
+        # собственно обмен узлами ..
+        el1, el2 = el2, el1
+        # восстанавливаем справедливость уже в новое расположение узлов
+        el1._left, el1._right, el2._left, el2._right = subTrees
 
     def reposition(self):
         ''' Определение элемента для перестановки  '''
@@ -178,11 +182,12 @@ for i in range(20):
     print(d, end=', ')
 print()
 print(tree)
+print(f'Максимальная глубина {tree.height}, дизбаланс:', 'есть' if tree.isDisbalansed else 'нет' )
 print('обход дерева в ширину', roundWidth(tree))
 print('обход дерева в длину vlr', roundDepth(tree, 'vlr'))
 print('обход дерева в длину lrv', roundDepth(tree, 'lrv'))
 print('обход дерева в длину lvr', roundDepth(tree, 'lvr'))
-print(f'Максимальная глубира {tree.height}, дизбаланс:', 'есть' if tree.isDisbalansed else 'нет' )
+
 
 
 tree = AVLTree()
@@ -192,7 +197,7 @@ for i in range(20):
     print(i, end=', ')
 print()
 print(tree)
-print(f'Максимальная глубира {tree.height}, дизбаланс:', 'есть' if tree.isDisbalansed else 'нет' )
+print(f'Максимальная глубина {tree.height}, дизбаланс:', 'есть' if tree.isDisbalansed else 'нет' )
 
 for d in [9, 19, 8, 5, 15, 100]:
     print(f'поиск {d}:', tree.search(d))
