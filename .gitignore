@@ -1,0 +1,4 @@
+.env
+libs
+__pycache__
+hello.txt
